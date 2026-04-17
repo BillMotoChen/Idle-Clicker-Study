@@ -1,25 +1,41 @@
 using UnityEngine;
 using TMPro;
+using Unity.Collections;
 
 public class CarrotManager : MonoBehaviour
 {
+    public static CarrotManager instance;
+
     [Header(" Data ")]
     [SerializeField] private double totalCarrotsCount;
-    [SerializeField] private double carrotIncrement;
+    [SerializeField] private int frenzyModeMultiplier;
+    private double carrotIncrement;
     [SerializeField] private TextMeshProUGUI carrotCountText;
+
+    public double GetCarrotIncrement() { return carrotIncrement; }
 
     void Awake()
     {
+        if (instance == null)
+            instance = this;
+        else
+            Destroy(gameObject);
+
+        carrotIncrement = 1;
         LoadData();
     }
     void OnEnable()
     {
         InputManager.onCarrotClicked += CarrotClickedCallback;
+        Carrot.onFrenzyModeStarted += FrenzyModeStartCallback;
+        Carrot.onFrenzyModeStopped += FrenzyModeStopCallback;
     }
 
     void OnDisable()
     {
         InputManager.onCarrotClicked -= CarrotClickedCallback;
+        Carrot.onFrenzyModeStarted -= FrenzyModeStartCallback;
+        Carrot.onFrenzyModeStopped -= FrenzyModeStopCallback;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -31,6 +47,13 @@ public class CarrotManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void AddCarrot(float value)
+    {
+        totalCarrotsCount += value;
+        UpdateCarrotCountText();
+        SaveData();
     }
 
     private void CarrotClickedCallback()
@@ -54,7 +77,17 @@ public class CarrotManager : MonoBehaviour
 
     private void UpdateCarrotCountText()
     {
-        carrotCountText.text = totalCarrotsCount + " Carrots";
+        carrotCountText.text = totalCarrotsCount.ToString("F1") + " Carrots";
+    }
+
+    private void FrenzyModeStartCallback()
+    {
+        carrotIncrement *= frenzyModeMultiplier;
+    }
+
+    private void FrenzyModeStopCallback()
+    {
+        carrotIncrement /= frenzyModeMultiplier;
     }
 
 }
